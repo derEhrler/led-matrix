@@ -9,8 +9,6 @@
 
 //#include "letters.h"
 
-// vagina
-
 // Pin und Matrixdefinitionen
 #define IR_PIN          2
 #define BUTTON_PIN      3
