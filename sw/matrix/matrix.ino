@@ -1,15 +1,17 @@
 #include <FastLED.h>
 #include <IRremote.h>
 #include <avr/sleep.h>
+#include <Wire.h>
 
+/*
 #include "Twinkle.cpp"
 #include "Snake.cpp"
 #include "Life.cpp"
 #include "Plasma.cpp"
+*/
 
 //#include "letters.h"
 
-// penis
 
 // Pin und Matrixdefinitionen
 #define IR_PIN          2
@@ -33,7 +35,6 @@
 
 // für LSD
 #define MAX_DIMENSION ((kMatrixWidth>kMatrixHeight) ? kMatrixWidth : kMatrixHeight)
-#define HOLD_PALETTES_X_TIMES_AS_LONG 2 // 1 = 5sec pro Palette, 2 = 10 sec pro Palette
 
 // für ISR
 volatile bool buttonSignal = false;
@@ -43,7 +44,8 @@ volatile int buttonValue = 0;
 volatile unsigned long IRTime = 0;
 volatile unsigned long buttonTime = 0;
 
-long IRValue = 0;
+byte IRValue = 0x0;
+byte IRbuffer[2] = {0, 0};
 
 // für Animationen
 int animationState = 0;
@@ -71,14 +73,13 @@ CRGB matrix[NUM_LEDS];
 void setup() {
     delay(2000);
 
-    pinMode(IR_PIN, INPUT);
-    attachInterrupt(0, ISR_IR, CHANGE);
-
     pinMode(BUTTON_PIN, INPUT_PULLUP);
     attachInterrupt(1, ISR_BUTTON, FALLING);
 
-    //Serial.begin(9600);
+    Serial.begin(9600);
     IrReceiver.begin(IR_PIN);
+
+    Wire.begin();
 
     FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(matrix, NUM_LEDS);
     FastLED.show();
@@ -100,8 +101,6 @@ void loop() {
     if (IRTime > buttonTime) {    //IR Singal kam zuletzt
         if (IRValue == 0x45) {    // I/O
             turn_off();
-            if (millis() - IRTime > SLEEP_COOLDOWN)
-                enterSleep();
         }
         if (IRValue == 0x40) {}   // PLAY/PAUSE
         if (IRValue == 0x46) {}   // VOL+
@@ -147,8 +146,6 @@ void loop() {
         switch (buttonValue) {
             case 0:
                 turn_off();
-                if (millis() - buttonTime > SLEEP_COOLDOWN)
-                    enterSleep();
                 break;
             case 1:
                 BalkenLilaBlau(0x1400F5, 0xDC003C, 100);
@@ -183,24 +180,10 @@ void loop() {
 
     if (buttonTime == IRTime) {
         turn_off();
-        if (millis() - IRTime > SLEEP_COOLDOWN)
-            enterSleep();
     }
 }
 
 //++++++++++++++++++++ ISR ++++++++++++++++++++++++++++
-
-void ISR_IR() {
-    //detachInterrupt(1);
-    IRSignal = false;
-    if (IrReceiver.decode() && IrReceiver.decodedIRData.decodedRawData != 0x0) {
-        IRValueNew = IrReceiver.decodedIRData.command;
-        IRSignal = true;
-        IRTime = millis();
-    }
-    IrReceiver.resume();
-    //attachInterrupt(1,newSignal,CHANGE);
-}
 
 void ISR_BUTTON() {
     delay(50);
@@ -225,6 +208,31 @@ void enterSleep() {
     buttonValue = 0;
 }
 
+
+bool readIR() {
+
+    if (millis() - IRTime <= 200)
+        return false; 
+    
+    Wire.requestFrom(5, 2); // adress, number of bytes
+    
+    if(Wire.available()) {
+        for (int i = 0; i<2; i++) {
+            IRbuffer[i] = Wire.read();    
+            //Serial.println(data[i]);
+        }
+    }
+
+    if (IRbuffer[0] == 0x0)
+        return false;
+
+    IRValueNew = IRbuffer[0];
+
+    IRTime = millis();
+    return true;
+}
+
+
 bool waitAndCheck(unsigned long wait) {
     unsigned long currentTime;
     setBrightness();
@@ -235,24 +243,19 @@ bool waitAndCheck(unsigned long wait) {
             buttonSignal = false;
             return true;
         }
-        if (IRSignal) {
-            while (millis() - currentTime <= IR_COOLDOWN) {
-                if (IRValueNew != 0x0)
-                    break;
-            }
-            IRSignal = false;
+        if (readIR()) {
             if (IRValueNew == 0x0) {}           // vertippt
             else if (IRValueNew == 0x46) {      // VOL+
-                brightnessOffset += 10;
+                brightnessOffset += 5;
             }
             else if (IRValueNew == 0x15) {      // VOL-
-                brightnessOffset -= 10;
+                brightnessOffset -= 5;
             }
             else if (IRValueNew == 0x43) {      // FORWARD
-                waitOffset -= 5;
+                waitOffset -= 2;
             }
             else if (IRValueNew == 0x44) {      // BACKWARD
-                waitOffset += 5;
+                waitOffset += 2;
             }
             else if (IRValueNew == 0x09) {      // UP
                 animationState ++;
@@ -261,7 +264,7 @@ bool waitAndCheck(unsigned long wait) {
                 animationState --;
             }
             else {
-                IRValue = IRValueNew;
+                IRValue = IRbuffer[0];
                 IRValueNew = 0x0;
                 waitOffset = 0;
                 animationState = 0;
@@ -273,6 +276,7 @@ bool waitAndCheck(unsigned long wait) {
 }
 
 void setBrightness() {
+    /*
     if (analogRead(BRIGHTNESS_PIN) < 10 || analogRead(BRIGHTNESS_PIN) > 1013)
         brightnessOffset = 0;
     if (map(analogRead(BRIGHTNESS_PIN), 0, 1023, 255, 0) + brightnessOffset > 255)
@@ -281,6 +285,8 @@ void setBrightness() {
         FastLED.setBrightness(0);
     else
         FastLED.setBrightness(map(analogRead(BRIGHTNESS_PIN), 0, 1023, 255, 0) + brightnessOffset);
+    */
+    FastLED.setBrightness(150 + brightnessOffset);
 }
 
 int whichState(int numStates) {
@@ -487,26 +493,26 @@ void pride_MatrixVersion() {
 
 //------------------------------- doTwinkle
 void doTwinkle(unsigned long wait) {
-    Twinkle twinkle(matrix, WIDTH, HEIGHT, true, true);
-    twinkle.start(&buttonSignal, &IRSignal, &IRValue, &IRValueNew, &waitOffset, &brightnessOffset, &animationState, wait);
+    //Twinkle twinkle(matrix, WIDTH, HEIGHT, true, true);
+    //twinkle.start(&buttonSignal, &IRSignal, &IRValue, &IRValueNew, &waitOffset, &brightnessOffset, &animationState, wait);
 }
 
 //------------------------------- doSnake
 void doSnake(unsigned long wait) {
-    Snake snake(matrix, WIDTH, HEIGHT);
-    snake.start(&buttonSignal, &IRSignal, &IRValue, &IRValueNew, &waitOffset, &brightnessOffset, &animationState, wait);
+    //Snake snake(matrix, WIDTH, HEIGHT);
+    //snake.start(&buttonSignal, &IRSignal, &IRValue, &IRValueNew, &waitOffset, &brightnessOffset, &animationState, wait);
 }
 
 //------------------------------- doLife
 void doLife(unsigned long wait) {
-    Life life(matrix, WIDTH, HEIGHT, 60);
-    life.start(&buttonSignal, &IRSignal, &IRValue, &IRValueNew, &waitOffset, &brightnessOffset, &animationState, wait);
+    //Life life(matrix, WIDTH, HEIGHT, 60);
+    //life.start(&buttonSignal, &IRSignal, &IRValue, &IRValueNew, &waitOffset, &brightnessOffset, &animationState, wait);
 }
 
 //------------------------------- doPlasma
 void doPlasma() {
-    Plasma plasma(matrix, WIDTH, HEIGHT);
-    plasma.start(&buttonSignal, &IRSignal, &IRValue, &IRValueNew, &waitOffset, &brightnessOffset, &animationState);
+    //Plasma plasma(matrix, WIDTH, HEIGHT);
+    //plasma.start(&buttonSignal, &IRSignal, &IRValue, &IRValueNew, &waitOffset, &brightnessOffset, &animationState);
 }
 
 //------------------------------- doBetterTwinkle
