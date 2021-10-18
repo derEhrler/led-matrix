@@ -12,7 +12,7 @@
 
 //#include "letters.h"
 
-// test
+// test, works with linux
 
 
 // Pin und Matrixdefinitionen
