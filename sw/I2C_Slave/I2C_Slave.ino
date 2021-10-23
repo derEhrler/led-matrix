@@ -5,8 +5,6 @@
 #define IR_PIN          2
 
 
-bool IRSignal = false;
-unsigned long IRTime = 0;
 byte IRValue[2] = {0, 0};
 
 
