@@ -19,7 +19,7 @@
 #define IR_PIN          2
 #define BUTTON_PIN      3
 #define MATRIX_PIN      6
-#define BRIGHTNESS_PIN  A5
+#define BRIGHTNESS_PIN  A2
 #define NUM_ANIMATIONEN 9
 #define HEIGHT          10
 #define WIDTH           10
