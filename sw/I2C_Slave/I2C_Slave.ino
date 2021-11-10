@@ -73,7 +73,7 @@ void decodeIR() {
 
 
 void wakeupMaster() {
-    
+
     Serial.println("Wakeup");
     MasterSleep = false;
     SlavePrepareWakeup = false;
@@ -89,14 +89,15 @@ void checkStates() {
     unsigned long testTime = 0;
     unsigned long testTime2 = 0;
     long penis = 0;
-    
+
     if (SlavePrepareWakeup && MasterSleep) {
-        if (IRValue[0] == 0x45)
+        if (IRValue[0] == 0x45) {
             Serial.println("Wakeup Master");
             wakeupMaster();
+        }
         return;
     }
-    
+
     if (!SlavePrepareWakeup && MasterSleep) {
         IRValue[0] = 0;
         IRValue[1] = 0;
@@ -111,12 +112,12 @@ void checkStates() {
     penis = long(testTime2);
     if (!SlavePrepareWakeup && !MasterSleep) {
         if (penis  >= 3000L) {
-        Serial.println(testTime);
-        Serial.println(txTime);
-        Serial.println(penis);
-        Serial.println("force Wakeup");
-        wakeupMaster();
-        return;
+            Serial.println(testTime);
+            Serial.println(txTime);
+            Serial.println(penis);
+            Serial.println("force Wakeup");
+            wakeupMaster();
+            return;
         }
     }
 }
@@ -126,5 +127,5 @@ void loop() {
 
     decodeIR();
 
-    checkStates();    
+    checkStates();
 }
