@@ -3,7 +3,7 @@
 
 #define WAKEUP_PIN      2
 
-#define SLEEP_COOLDOWN  1000;
+#define SLEEP_COOLDOWN  1000
 
 byte data[2];
 bool gotoSleep = false;

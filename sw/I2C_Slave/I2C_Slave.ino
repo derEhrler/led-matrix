@@ -5,6 +5,8 @@
 #define IR_PIN          2
 #define WAKEUP_PIN      6
 
+#define NO_TX_OCCURED   3000
+
 
 byte IRValue[2] = {0, 0};
 bool MasterSleep = false;
@@ -29,7 +31,6 @@ void setup() {
     Wire.onReceive(receive_event_handler);
 
     txTime = millis();
-
 }
 
 
@@ -86,9 +87,8 @@ void wakeupMaster() {
 
 
 void checkStates() {
-    unsigned long testTime = 0;
-    unsigned long testTime2 = 0;
-    long penis = 0;
+    unsigned long helpTime;
+    long lastTx;
 
     if (SlavePrepareWakeup && MasterSleep) {
         if (IRValue[0] == 0x45) {
@@ -107,15 +107,11 @@ void checkStates() {
         return;
     }
 
-    testTime = millis();
-    testTime2 = testTime - txTime;
-    penis = long(testTime2);
+    helpTime = millis() - txTime;
+    lastTx = long(helpTime);
     if (!SlavePrepareWakeup && !MasterSleep) {
-        if (penis  >= 3000L) {
-            Serial.println(testTime);
-            Serial.println(txTime);
-            Serial.println(penis);
-            Serial.println("force Wakeup");
+        if (lastTx  >= NO_TX_OCCURED) {
+            Serial.println("Force Wakeup");
             wakeupMaster();
             return;
         }
