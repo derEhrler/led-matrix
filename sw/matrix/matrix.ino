@@ -16,7 +16,7 @@
 
 
 // Pin und Matrixdefinitionen
-#define IR_PIN          2
+#define WAKEUP_PIN      2
 #define BUTTON_PIN      3
 #define MATRIX_PIN      6
 #define BRIGHTNESS_PIN  A2
@@ -27,7 +27,7 @@
 
 #define SLEEP_COOLDOWN  1000
 #define IR_COOLDOWN     700
-#define BUTTON_BOUNCE   50
+#define BUTTON_DEBOUNCE   70
 
 // für betterTwinkle
 #define STARTING_BRIGHTNESS 64
@@ -73,19 +73,20 @@ CRGB matrix[NUM_LEDS];
 //+++++++++++++++++++++ SETUP ++++++++++++++++++++++++++++
 
 void setup() {
-    delay(2000);
+    delay(500);
 
     pinMode(BUTTON_PIN, INPUT_PULLUP);
-    attachInterrupt(1, ISR_BUTTON, FALLING);
+    attachInterrupt(1, isrButton, FALLING);
+
+    pinMode(WAKEUP_PIN, INPUT);
 
     Serial.begin(9600);
-    IrReceiver.begin(IR_PIN);
 
     Wire.begin();
 
     FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(matrix, NUM_LEDS);
     FastLED.show();
-    FastLED.setBrightness(map(analogRead(BRIGHTNESS_PIN), 0, 1023, 255, 0));
+    setBrightness();
     FastLED.setDither(0);
     //FastLED.setCorrection(TypicalSMD5050);
 
@@ -103,6 +104,8 @@ void loop() {
     if (IRTime > buttonTime) {    //IR Singal kam zuletzt
         if (IRValue == 0x45) {    // I/O
             turn_off();
+            if (millis() - IRTime > SLEEP_COOLDOWN)
+                enterSleep();
         }
         if (IRValue == 0x40) {}   // PLAY/PAUSE
         if (IRValue == 0x46) {}   // VOL+
@@ -148,6 +151,8 @@ void loop() {
         switch (buttonValue) {
             case 0:
                 turn_off();
+                if (millis() - buttonTime > SLEEP_COOLDOWN)
+                    enterSleep();
                 break;
             case 1:
                 BalkenLilaBlau(0x1400F5, 0xDC003C, 100);
@@ -182,13 +187,17 @@ void loop() {
 
     if (buttonTime == IRTime) {
         turn_off();
+        if (millis() - IRTime > SLEEP_COOLDOWN)
+                enterSleep();
     }
 }
 
+
 //++++++++++++++++++++ ISR ++++++++++++++++++++++++++++
 
-void ISR_BUTTON() {
-    delay(50);
+void isrButton() {
+    
+    delay(BUTTON_DEBOUNCE);
     if (digitalRead(BUTTON_PIN) == LOW) {
         buttonSignal = true;
         buttonValue++;
@@ -198,9 +207,17 @@ void ISR_BUTTON() {
     }
 }
 
+
+void isrWakeup() {
+
+    detachInterrupt(0);
+}
+
 //++++++++++++++++++ STEUERFUNKTIONEN ++++++++++++++++++++++++++++++++++++
 
 void enterSleep() {
+    
+    attachInterrupt(0, isrWakeup, HIGH);
     set_sleep_mode(SLEEP_MODE_PWR_DOWN);
     sleep_enable();
     sleep_mode();
@@ -232,6 +249,14 @@ bool readIR() {
 
     IRTime = millis();
     return true;
+}
+
+
+void writeIR() {
+
+    Wire.beginTransmission(5);
+    Wire.write(1);
+    Wire.endTransmission();
 }
 
 
@@ -278,7 +303,7 @@ bool waitAndCheck(unsigned long wait) {
 }
 
 void setBrightness() {
-    /*
+    
     if (analogRead(BRIGHTNESS_PIN) < 10 || analogRead(BRIGHTNESS_PIN) > 1013)
         brightnessOffset = 0;
     if (map(analogRead(BRIGHTNESS_PIN), 0, 1023, 255, 0) + brightnessOffset > 255)
@@ -287,23 +312,29 @@ void setBrightness() {
         FastLED.setBrightness(0);
     else
         FastLED.setBrightness(map(analogRead(BRIGHTNESS_PIN), 0, 1023, 255, 0) + brightnessOffset);
-    */
-    FastLED.setBrightness(150 + brightnessOffset);
 }
 
+
 int whichState(int numStates) {
+    
     return abs(animationState % numStates);
 }
 
+
 long RGBtoHEX (byte r, byte g, byte b) {
+    
     return ((long)r << 16L) | ((long)g << 8L) | (long)b;
 }
 
+
 int XY (int x, int y) {
+    
     return x + y * WIDTH;
 }
 
+
 void drawHorizontalLine(int x, int y, int distance, long colour) {
+    
     if (distance > WIDTH)
         distance = WIDTH;
     for (int i = x; i < x + distance; i++) {
@@ -316,7 +347,9 @@ void drawHorizontalLine(int x, int y, int distance, long colour) {
     }
 }
 
+
 void drawVertikalLine(int x, int y, int distance, long colour) {
+    
     if (distance > HEIGHT)
         distance = HEIGHT;
     for (int i = y; i < y + distance; i++) {
@@ -328,6 +361,7 @@ void drawVertikalLine(int x, int y, int distance, long colour) {
         matrix[WIDTH * i + x] = colour;
     }
 }
+
 
 //++++++++++++++++++ ANIMATIONEN +++++++++++++++++++++++++++++++++++++++++
 
