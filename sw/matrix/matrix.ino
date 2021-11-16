@@ -3,6 +3,9 @@
 #include <avr/sleep.h>
 #include <Wire.h>
 
+#include "board_dev.h"
+//#include "letters.h"
+
 /*
 #include "Twinkle.cpp"
 #include "Snake.cpp"
@@ -10,33 +13,7 @@
 #include "Plasma.cpp"
 */
 
-//#include "letters.h"
 
-// test, works with linux
-
-
-// Pin und Matrixdefinitionen
-#define WAKEUP_PIN      2
-#define BUTTON_PIN      3
-#define MATRIX_PIN      6
-#define BRIGHTNESS_PIN  A2
-#define NUM_ANIMATIONEN 9
-#define HEIGHT          10
-#define WIDTH           10
-#define NUM_LEDS        100
-
-#define SLEEP_COOLDOWN  1000
-#define IR_COOLDOWN     700
-#define BUTTON_DEBOUNCE   70
-
-// für betterTwinkle
-#define STARTING_BRIGHTNESS 64
-#define FADE_IN_SPEED 32
-#define FADE_OUT_SPEED 20
-#define DENSITY 255
-
-// für LSD
-#define MAX_DIMENSION ((kMatrixWidth>kMatrixHeight) ? kMatrixWidth : kMatrixHeight)
 
 // für ISR
 volatile bool buttonSignal = false;
@@ -640,7 +617,6 @@ CRGB makeDarker( const CRGB& color, fract8 howMuchDarker) {
     return newcolor;
 }
 
-#define BITS_PER_DIRECTION_FLAG 1
 
 #if BITS_PER_DIRECTION_FLAG == 8
 
