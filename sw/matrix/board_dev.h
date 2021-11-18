@@ -1,3 +1,4 @@
+//++++++++++++++++++++ MASTER +++++++++++++++++++++++
 // Pins
 #define WAKEUP_PIN      2
 #define BUTTON_PIN      3
@@ -27,3 +28,13 @@
 
 // LSD
 #define MAX_DIMENSION ((kMatrixWidth>kMatrixHeight) ? kMatrixWidth : kMatrixHeight)
+
+
+
+//++++++++++++++++++++ SLAVE +++++++++++++++++++++++
+// Pins
+#define IR_PIN          2
+#define SLAVE_WAKEUP    6
+
+// Timers
+#define NO_TX_OCCURED   3000

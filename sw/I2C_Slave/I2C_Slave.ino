@@ -3,7 +3,7 @@
 
 
 #define IR_PIN          2
-#define WAKEUP_PIN      6
+#define SLAVE_WAKEUP    6
 
 #define NO_TX_OCCURED   3000
 
@@ -18,8 +18,8 @@ void setup() {
 
     Serial.begin(9600);
 
-    pinMode(WAKEUP_PIN, OUTPUT);
-    digitalWrite(WAKEUP_PIN, HIGH);
+    pinMode(SLAVE_WAKEUP, OUTPUT);
+    digitalWrite(SLAVE_WAKEUP, HIGH);
 
     pinMode(IR_PIN, INPUT);
     IrReceiver.begin(IR_PIN);
@@ -78,9 +78,9 @@ void wakeupMaster() {
     Serial.println("Wakeup");
     MasterSleep = false;
     SlavePrepareWakeup = false;
-    digitalWrite(WAKEUP_PIN, LOW);
+    digitalWrite(SLAVE_WAKEUP, LOW);
     delay(50);
-    digitalWrite(WAKEUP_PIN, HIGH);
+    digitalWrite(SLAVE_WAKEUP, HIGH);
     txTime = millis();
 
 }
