@@ -15,7 +15,7 @@
 
 // Timers
 #define SLEEP_COOLDOWN  1000
-#define IR_COOLDOWN     700
+#define IR_COOLDOWN     200
 #define BUTTON_DEBOUNCE   70
 
 

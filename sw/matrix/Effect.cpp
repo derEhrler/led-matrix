@@ -80,30 +80,3 @@ void Effect::_setBrightness(int *_brightnessOffset) {
     else 
         FastLED.setBrightness(map(analogRead(BRIGHTNESS_PIN), 0, 1023, 255, 0) + *_brightnessOffset);
 }
-
-unsigned long _IRTime = 0;
-byte _IRbuffer[2] = {0, 0};
-byte _IRValueNew = 0x0;
-
-bool _readIR() {
-
-    if (millis() - _IRTime <= 200)
-        return false; 
-    
-    Wire.requestFrom(5, 2); // adress, number of bytes
-    
-    if(Wire.available()) {
-        for (int i = 0; i<2; i++) {
-            _IRbuffer[i] = Wire.read();    
-            //Serial.println(data[i]);
-        }
-    }
-
-    if (_IRbuffer[0] == 0x0)
-        return false;
-
-    _IRValueNew = _IRbuffer[0];
-
-    _IRTime = millis();
-    return true;
-}
