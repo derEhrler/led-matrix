@@ -1,9 +1,8 @@
 #include <Wire.h>
 #include <avr/sleep.h>
 
-#define WAKEUP_PIN      2
+#include "board_dev.h"
 
-#define SLEEP_COOLDOWN  1000
 
 byte data[2];
 bool gotoSleep = false;

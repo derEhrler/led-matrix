@@ -9,9 +9,8 @@ extern volatile bool buttonSignal;
 extern volatile int buttonValue;
 extern volatile unsigned long buttonTime;
 
-extern long IRValueNew;
-extern byte IRValue;
 extern byte IRbuffer[2];
+extern byte IRValue[2];
 extern unsigned long IRTime;
 
 extern bool goToSleep;

@@ -1,12 +1,7 @@
 #include <Wire.h>
 #include <IRremote.h>
 
-
-#define IR_PIN          2
-#define SLAVE_WAKEUP    6
-
-#define NO_TX_OCCURED   3000
-
+#include "board_dev.h"
 
 byte IRValue[2] = {0, 0};
 bool MasterSleep = false;

@@ -33,46 +33,46 @@ void enter_sleep() {
 
 void animation_change_ir() {
 
-    if (IRValue == 0x45) {    // I/O
+    if (IRValue[0] == 0x45) {    // I/O
         turn_off();
         goToSleep = true;
     }
-    if (IRValue == 0x40) {}   // PLAY/PAUSE
-    if (IRValue == 0x46) {}   // VOL+
-    if (IRValue == 0x15) {}   // VOL-
-    if (IRValue == 0x43) {}   // FORWARD
-    if (IRValue == 0x44) {}   // BACKWARD
-    if (IRValue == 0x09) {}   // UP
-    if (IRValue == 0x07) {}   // DOWN
-    if (IRValue == 0x19) {}   // EQ
-    if (IRValue == 0x0D) {}   // ST/REPT
-    if (IRValue == 0x47) {}   // FUNC/STOP
-    if (IRValue == 0x16) {}   // 0
-    if (IRValue == 0x0C) {    // 1
+    if (IRValue[0] == 0x40) {}   // PLAY/PAUSE
+    if (IRValue[0] == 0x46) {}   // VOL+
+    if (IRValue[0] == 0x15) {}   // VOL-
+    if (IRValue[0] == 0x43) {}   // FORWARD
+    if (IRValue[0] == 0x44) {}   // BACKWARD
+    if (IRValue[0] == 0x09) {}   // UP
+    if (IRValue[0] == 0x07) {}   // DOWN
+    if (IRValue[0] == 0x19) {}   // EQ
+    if (IRValue[0] == 0x0D) {}   // ST/REPT
+    if (IRValue[0] == 0x47) {}   // FUNC/STOP
+    if (IRValue[0] == 0x16) {}   // 0
+    if (IRValue[0] == 0x0C) {    // 1
         balken_lila_blau(0x1400F5, 0xDC003C, 100);
     }
-    if (IRValue == 0x18) {    // 2
+    if (IRValue[0] == 0x18) {    // 2
         pride_strip_version();
     }
-    if (IRValue == 0x5E) {    // 3
+    if (IRValue[0] == 0x5E) {    // 3
         pride_matrix_version();
     }
-    if (IRValue == 0x08) {    // 4
+    if (IRValue[0] == 0x08) {    // 4
         do_twinkle(45);
     }
-    if (IRValue == 0x1C) {    // 5
+    if (IRValue[0] == 0x1C) {    // 5
         do_snake(65);
     }
-    if (IRValue == 0x5A) {    // 6
+    if (IRValue[0] == 0x5A) {    // 6
         do_life(75);
     }
-    if (IRValue == 0x42) {    // 7
+    if (IRValue[0] == 0x42) {    // 7
         do_plasma();
     }
-    if (IRValue == 0x52) {    // 8
+    if (IRValue[0] == 0x52) {    // 8
         do_better_twinkle(20);
     }
-    if (IRValue == 0x4A) {    // 9
+    if (IRValue[0] == 0x4A) {    // 9
         do_lsd(20);
     }
 }
@@ -129,28 +129,30 @@ bool wait_and_check(unsigned long wait) {
             return true;
         }
         if (request_from_slave()) {
-            if (IRValueNew == 0x0) {}           // vertippt
-            else if (IRValueNew == 0x46) {      // VOL+
-                brightnessOffset += 5;
+            if (IRbuffer[0] == 0x0) {}           // vertippt
+            else if (IRbuffer[0] == 0x46) {      // VOL+
+                brightnessOffset += 5 * IRbuffer[1];
             }
-            else if (IRValueNew == 0x15) {      // VOL-
-                brightnessOffset -= 5;
+            else if (IRbuffer[0] == 0x15) {      // VOL-
+                brightnessOffset -= 5 * IRbuffer[1];
             }
-            else if (IRValueNew == 0x43) {      // FORWARD
-                waitOffset -= 2;
+            else if (IRbuffer[0] == 0x43) {      // FORWARD
+                waitOffset -= 2 * IRbuffer[1];
             }
-            else if (IRValueNew == 0x44) {      // BACKWARD
-                waitOffset += 2;
+            else if (IRbuffer[0] == 0x44) {      // BACKWARD
+                waitOffset += 2 * IRbuffer[1];
             }
-            else if (IRValueNew == 0x09) {      // UP
+            else if (IRbuffer[0] == 0x09) {      // UP
                 animationState ++;
+                IRbuffer[0] = 0x0;
             }
-            else if (IRValueNew == 0x07) {      // DOWN
+            else if (IRbuffer[0] == 0x07) {      // DOWN
                 animationState --;
+                IRbuffer[0] = 0x0;
             }
             else {
-                IRValue = IRbuffer[0];
-                IRValueNew = 0x0;
+                IRValue[0][0] = IRbuffer[0];
+                IRbuffer[0] = 0x0;
                 waitOffset = 0;
                 animationState = 0;
                 return true;
@@ -163,7 +165,7 @@ bool wait_and_check(unsigned long wait) {
 
 bool request_from_slave() {
 
-    if (millis() - IRTime <= 200)
+    if (millis() < (IRTime + IR_COOLDOWN))
         return false;
 
     Wire.requestFrom(5, 2); // adress, number of bytes
@@ -175,20 +177,19 @@ bool request_from_slave() {
         }
     }
 
+    IRTime = millis();
+
     if (IRbuffer[0] == 0x0)
         return false;
 
-    IRValueNew = IRbuffer[0];
-
-    IRTime = millis();
     return true;
 }
 
 
 void send_to_slave() {
 
-    Wire.beginTransmission(5); 
-    Wire.write(1);       
+    Wire.beginTransmission(5);
+    Wire.write(1);
     Wire.endTransmission();
 }
 

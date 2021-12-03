@@ -9,9 +9,8 @@ volatile bool buttonSignal = false;
 volatile int buttonValue = 0;
 volatile unsigned long buttonTime = 0;
 
-long IRValueNew = 0;
-byte IRValue = 0x0;
 byte IRbuffer[2] = {0, 0};
+byte IRValue[2] = {0, 0};
 unsigned long IRTime = 0;
 
 bool goToSleep = false;

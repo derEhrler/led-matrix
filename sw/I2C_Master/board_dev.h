@@ -15,7 +15,7 @@
 
 // Timers
 #define SLEEP_COOLDOWN  1000
-#define IR_COOLDOWN     400
+#define IR_COOLDOWN     200
 #define BUTTON_DEBOUNCE   70
 
 
@@ -25,7 +25,6 @@
 #define FADE_OUT_SPEED 20
 #define DENSITY 255
 #define BITS_PER_DIRECTION_FLAG 1
-
 
 // LSD
 #define MAX_DIMENSION ((kMatrixWidth>kMatrixHeight) ? kMatrixWidth : kMatrixHeight)
