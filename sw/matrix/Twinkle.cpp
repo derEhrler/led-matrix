@@ -3,6 +3,8 @@
  */
 
 #include "Effect.h"
+#include "matrix_init.h"
+#include "matrix_control.h"
 
 #define MAX_TWINKS 25
 #define OFFSET 0xB000
@@ -27,7 +29,7 @@ public:
         numTwinks(0) {
     }
     
-    void start(bool *_buttonSignal, bool *_IRSignal, long *_IRValue, volatile long *_IRValueNew, long *_waitOffset, int *_brightnessOffset, int *_animationState, unsigned long wait) {
+    void start(unsigned long wait) {
         for (uint16_t frame = 0x0000, iterations = 0; iterations < 2250; frame += 0x20, iterations++) {
             for (int i = 0; i < width * height; i++) {
                 if (leds[i]) {
@@ -51,7 +53,7 @@ public:
                     }
                 }
             }
-            if(_waitAndCheck(_buttonSignal, _IRSignal, _IRValue, _IRValueNew, _waitOffset, _brightnessOffset, _animationState, wait))
+            if(wait_and_check(wait))
                 return;
             
         }

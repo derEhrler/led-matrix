@@ -25,17 +25,6 @@ class Effect {
     protected:
         CRGB *leds;
         int width, height;
-
-        //int _waitOffset;
-        //int _brightnessOffset;
-        //long _animationState;
-        bool _waitAndCheck(bool *_buttonSignal, bool *_IRSignal, long *_IRValue, volatile long *_IRValueNew, long *_waitOffset, int *_brightnessOffset, int *_animationState, unsigned long wait);
-        void _setBrightness(int *_brightnessOffset);
-        bool _readIR();
-
-        unsigned long _IRTime = 0;
-        byte _IRbuffer[2] = {0, 0};
-        byte _IRValueNew = 0x0;
         
         struct CRGB& pixel(int x, int y);
         bool inXRange(int x);

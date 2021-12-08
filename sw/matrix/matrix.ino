@@ -7,12 +7,9 @@
 #include "matrix_animation.h"
 //#include "letters.h"
 
-/*
-    #include "Twinkle.cpp"
-    #include "Snake.cpp"
-    #include "Life.cpp"
-    #include "Plasma.cpp"
-*/
+
+
+
 
 //+++++++++++++++++++++ SETUP ++++++++++++++++++++++++++++
 void setup() {

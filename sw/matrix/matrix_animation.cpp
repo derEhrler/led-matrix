@@ -2,11 +2,16 @@
 #include "matrix_control.h"
 #include "matrix_animation.h"
 
+#include "Twinkle.cpp"
+#include "Snake.cpp"
+#include "Life.cpp"
+#include "Plasma.cpp"
+
 #include <FastLED.h>
 
 //--------------------------------------------------------------------- turn_off
 void turn_off() {
-    
+
     FastLED.clear();
     FastLED.show();
 }
@@ -14,7 +19,7 @@ void turn_off() {
 
 //--------------------------------------------------------------------- BalkenLilaBlau
 void balken_lila_blau(unsigned long lila, unsigned long blau, unsigned long wait) {
-    
+
     for (int i = 0; i < HEIGHT / 2; i++) {          // oben -> unten
         draw_horizontal_line(0, i, 10, blau);
         draw_horizontal_line(0, i + 5, 10, lila);
@@ -68,7 +73,7 @@ void balken_lila_blau(unsigned long lila, unsigned long blau, unsigned long wait
 
 //--------------------------------------------------------------------- pride_StripVersion
 void pride_strip_version() {
-    
+
     static uint16_t sPseudotime = 0;
     static uint16_t sLastMillis = 0;
     static uint16_t sHue16 = 0;
@@ -113,7 +118,7 @@ void pride_strip_version() {
 
 //--------------------------------------------------------------------- pride_MatrixVersion
 void pride_matrix_version() {
-    
+
     static uint16_t sPseudotime = 0;
     static uint16_t sLastMillis = 0;
     static uint16_t sHue16 = 0;
@@ -160,33 +165,33 @@ void pride_matrix_version() {
 
 //--------------------------------------------------------------------- doTwinkle
 void do_twinkle(unsigned long wait) {
-    
-    //Twinkle twinkle(matrix, WIDTH, HEIGHT, true, true);
-    //twinkle.start(&buttonSignal, &IRSignal, &IRValue, &IRValueNew, &waitOffset, &brightnessOffset, &animationState, wait);
+
+    Twinkle twinkle(matrix, WIDTH, HEIGHT, true, true);
+    twinkle.start(wait);
 }
 
 
 //--------------------------------------------------------------------- doSnake
 void do_snake(unsigned long wait) {
-    
-    //Snake snake(matrix, WIDTH, HEIGHT);
-    //snake.start(&buttonSignal, &IRSignal, &IRValue, &IRValueNew, &waitOffset, &brightnessOffset, &animationState, wait);
+
+    Snake snake(matrix, WIDTH, HEIGHT);
+    snake.start(wait);
 }
 
 
 //--------------------------------------------------------------------- doLife
 void do_life(unsigned long wait) {
-    
-    //Life life(matrix, WIDTH, HEIGHT, 60);
-    //life.start(&buttonSignal, &IRSignal, &IRValue, &IRValueNew, &waitOffset, &brightnessOffset, &animationState, wait);
+
+    Life life(matrix, WIDTH, HEIGHT, 60);
+    life.start(wait);
 }
 
 
 //--------------------------------------------------------------------- doPlasma
 void do_plasma() {
-    
-    //Plasma plasma(matrix, WIDTH, HEIGHT);
-    //plasma.start(&buttonSignal, &IRSignal, &IRValue, &IRValueNew, &waitOffset, &brightnessOffset, &animationState);
+
+    Plasma plasma(matrix, WIDTH, HEIGHT);
+    plasma.start();
 }
 
 
@@ -293,7 +298,7 @@ void colortwinkles() {
 
 
 void do_better_twinkle(unsigned long wait) {
-    
+
     chooseColorPalette();
     colortwinkles();
     if (wait_and_check(wait))
@@ -313,7 +318,7 @@ uint8_t noise[MAX_DIMENSION][MAX_DIMENSION];
 CRGBPalette16 currentPalette( PartyColors_p );
 uint8_t colorLoop = 1;
 
-void fillnoise8() {  
+void fillnoise8() {
     uint8_t dataSmoothing = 0;
     if ( speed < 50) {
         dataSmoothing = 200 - (speed * 4);
@@ -468,15 +473,19 @@ void ChangePaletteAndSettingsPeriodically() {
         }
     }
     if (waitOffset != 0) {
-        if (waitOffset > 0) {speed -= 2;}
-        else {speed += 2;}
+        if (waitOffset > 0) {
+            speed -= 2;
+        }
+        else {
+            speed += 2;
+        }
         waitOffset = 0;
     }
 }
 
 
 void do_lsd(unsigned long wait) {
-    
+
     ChangePaletteAndSettingsPeriodically();
     fillnoise8();
     mapNoiseToLEDsUsingPalette();

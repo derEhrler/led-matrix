@@ -3,6 +3,8 @@
  */
 
 #include "Effect.h"
+#include "matrix_init.h"
+#include "matrix_control.h"
 
 class Snake : public Effect {
 private:
@@ -56,7 +58,7 @@ public:
         }
     }
     
-    void start(bool *_buttonSignal, bool *_IRSignal, long *_IRValue, volatile long *_IRValueNew, long *_waitOffset, int *_brightnessOffset, int *_animationState, unsigned long wait) {
+    void start(unsigned long wait) {
         clearLeds();
         for (int frameNo = 0; frameNo < 1000; frameNo++) {
             shuffleDown();
@@ -81,7 +83,7 @@ public:
             for (byte i = 0; i < SNAKE_LENGTH; i++) {
                 pixel(pixels[i].x, pixels[i].y) = colours[i] %= (255 - i * (255 / SNAKE_LENGTH));
             }
-            if(_waitAndCheck(_buttonSignal, _IRSignal, _IRValue, _IRValueNew, _waitOffset, _brightnessOffset, _animationState, wait))
+            if(wait_and_check(wait))
                 return;
             clearLeds();
         }
