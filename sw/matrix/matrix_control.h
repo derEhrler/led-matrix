@@ -1,7 +1,7 @@
 #include "Arduino.h"
 
-
 void enter_sleep(void);
+
 void animation_change_ir(void);
 void animation_change_button(void);
 bool wait_and_check(unsigned long wait);

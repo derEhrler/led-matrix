@@ -24,9 +24,10 @@ CRGB matrix[NUM_LEDS];
 
 
 void isr_button() {
+
+    delay(BUTTON_DEBOUNCE);
     if (goToSleep)
         sleep_disable();
-    delay(BUTTON_DEBOUNCE);
     if (digitalRead(BUTTON_PIN) == LOW) {
         buttonSignal = true;
         buttonValue++;

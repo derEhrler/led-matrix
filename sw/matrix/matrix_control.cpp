@@ -18,6 +18,7 @@ void enter_sleep() {
 
     attachInterrupt(0, isrWakeup, LOW);
     set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+    Serial.println("Sleep Mode");
     delay(50);
     sleep_enable();
     sleep_mode();
@@ -28,6 +29,7 @@ void enter_sleep() {
     }
     wakeupTime = millis();
     IRbuffer[0] = 0;
+    IRValue[0] = IRValue[1];
 }
 
 
@@ -123,7 +125,18 @@ bool wait_and_check(unsigned long wait) {
     set_brightness();
     FastLED.show();
     currentTime = millis();
+
+    unsigned long helpTime;
+    long sleepTimeout;
+
+    Serial.println(IRbuffer[0]);
+    Serial.println(IRValue[0]);
+    Serial.println(buttonValue);
+    Serial.println(" ");
+
     do {
+        helpTime = millis() - wakeupTime;
+        sleepTimeout = long(helpTime);
         if (buttonSignal) {
             buttonSignal = false;
             return true;
@@ -151,7 +164,11 @@ bool wait_and_check(unsigned long wait) {
                 IRbuffer[0] = 0x0;
             }
             else {
-                IRValue[0][0] = IRbuffer[0];
+                if (IRbuffer[0] == 0x45 && sleepTimeout <= SLEEP_COOLDOWN) {
+                    return false;    
+                }
+                IRValue[1] = IRValue[0];
+                IRValue[0] = IRbuffer[0];
                 IRbuffer[0] = 0x0;
                 waitOffset = 0;
                 animationState = 0;
@@ -178,9 +195,6 @@ bool request_from_slave() {
     }
 
     IRTime = millis();
-
-    if (IRbuffer[0] == 0x0)
-        return false;
 
     return true;
 }
