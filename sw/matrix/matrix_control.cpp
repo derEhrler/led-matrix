@@ -18,15 +18,11 @@ void enter_sleep() {
 
     attachInterrupt(0, isrWakeup, LOW);
     set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-    Serial.println("Sleep Mode");
+    //Serial.println("Sleep Mode");
     delay(50);
     sleep_enable();
     sleep_mode();
     goToSleep = false;
-    if (buttonSignal) {
-        detachInterrupt(0);
-        buttonValue = 1;
-    }
     wakeupTime = millis();
     IRbuffer[0] = 0;
     IRValue[0] = IRValue[1];
@@ -80,45 +76,6 @@ void animation_change_ir() {
 }
 
 
-void animation_change_button() {
-
-    switch (buttonValue) {
-        case 0:
-            turn_off();
-            goToSleep = true;
-            break;
-        case 1:
-            balken_lila_blau(0x1400F5, 0xDC003C, 100);
-            break;
-        case 2:
-            pride_strip_version();
-            break;
-        case 3:
-            pride_matrix_version();
-            break;
-        case 4:
-            do_twinkle(45);
-            break;
-        case 5:
-            do_snake(65);
-            break;
-        case 6:
-            do_life(75);
-            break;
-        case 7:
-            do_plasma();
-            break;
-        case 8:
-            do_better_twinkle(20);
-            break;
-        case 9:
-            do_lsd(20);
-            break;
-        default: turn_off();
-    }
-}
-
-
 bool wait_and_check(unsigned long wait) {
 
     unsigned long currentTime;
@@ -129,18 +86,13 @@ bool wait_and_check(unsigned long wait) {
     unsigned long helpTime;
     long sleepTimeout;
 
-    Serial.println(IRbuffer[0]);
-    Serial.println(IRValue[0]);
-    Serial.println(buttonValue);
-    Serial.println(" ");
+    //Serial.println(IRbuffer[0]);
+    //Serial.println(IRValue[0]);
+    //Serial.println(" ");
 
     do {
         helpTime = millis() - wakeupTime;
         sleepTimeout = long(helpTime);
-        if (buttonSignal) {
-            buttonSignal = false;
-            return true;
-        }
         if (request_from_slave()) {
             if (IRbuffer[0] == 0x0) {}           // vertippt
             else if (IRbuffer[0] == 0x46) {      // VOL+
@@ -210,14 +162,12 @@ void send_to_slave() {
 
 void set_brightness() {
 
-    if (analogRead(BRIGHTNESS_PIN) < 10 || analogRead(BRIGHTNESS_PIN) > 1013)
-        brightnessOffset = 0;
-    if (map(analogRead(BRIGHTNESS_PIN), 0, 1023, 255, 0) + brightnessOffset > 255)
-        FastLED.setBrightness(255);
-    else if (map(analogRead(BRIGHTNESS_PIN), 0, 1023, 255, 0) + brightnessOffset < 0)
-        FastLED.setBrightness(0);
-    else
-        FastLED.setBrightness(map(analogRead(BRIGHTNESS_PIN), 0, 1023, 255, 0) + brightnessOffset);
+    if (brightnessOffset > (255 - INITIAL_BRIGHT)) 
+        brightnessOffset = 255 - INITIAL_BRIGHT;
+    else if (brightnessOffset < (INITIAL_BRIGHT - MINIMAL_BRIGHT) * (-1))
+        brightnessOffset = (INITIAL_BRIGHT - MINIMAL_BRIGHT) * (-1);
+
+    FastLED.setBrightness(INITIAL_BRIGHT + brightnessOffset);
 }
 
 

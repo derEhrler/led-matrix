@@ -11,11 +11,13 @@
 #define HEIGHT          10
 #define WIDTH           10
 #define NUM_LEDS        100
+#define INITIAL_BRIGHT  100
+#define MINIMAL_BRIGHT  5
 
 
 // Timers
 #define SLEEP_COOLDOWN  1000
-#define IR_COOLDOWN     400
+#define IR_COOLDOWN     500
 #define BUTTON_DEBOUNCE   70
 
 

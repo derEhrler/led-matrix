@@ -21,6 +21,8 @@ void setup() {
     init_comms();
 
     init_matrix();
+
+    turn_off();
 }
 
 //+++++++++++++++++++++ LOOP +++++++++++++++++++++++++++++
@@ -28,24 +30,12 @@ void loop() {
 
     wait_and_check(0);
 
-    if (IRTime > buttonTime) {    //IR Singal kam zuletzt
-        animation_change_ir();
-    }
-
-    if (buttonTime > IRTime) {  // Knopdruck kam zuletzt
-        animation_change_button();
-    }
-
-    if (buttonTime == IRTime) {
-        turn_off();
-        goToSleep = true;
-    }
+    animation_change_ir();
 
     if (goToSleep) {
         turn_off();
         send_to_slave();
         enter_sleep();
-
     }
 }
 

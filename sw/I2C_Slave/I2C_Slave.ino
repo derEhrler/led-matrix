@@ -11,7 +11,7 @@ unsigned long txTime = 0;
 
 void setup() {
 
-    Serial.begin(9600);
+    //Serial.begin(9600);
 
     pinMode(SLAVE_WAKEUP, OUTPUT);
     digitalWrite(SLAVE_WAKEUP, HIGH);
@@ -46,7 +46,7 @@ void receive_event_handler() {
     }
     IRValue[0] = 0;
     IRValue[1] = 0;
-    Serial.println("Prepare Wakeup");
+    //Serial.println("Prepare Wakeup");
 }
 
 
@@ -70,7 +70,7 @@ void decodeIR() {
 
 void wakeupMaster() {
 
-    Serial.println("Wakeup");
+    //Serial.println("Wakeup");
     MasterSleep = false;
     SlavePrepareWakeup = false;
     digitalWrite(SLAVE_WAKEUP, LOW);
@@ -87,7 +87,7 @@ void checkStates() {
 
     if (SlavePrepareWakeup && MasterSleep) {
         if (IRValue[0] == 0x45) {
-            Serial.println("Wakeup Master");
+            //Serial.println("Wakeup Master");
             wakeupMaster();
         }
         return;
@@ -97,7 +97,7 @@ void checkStates() {
         IRValue[0] = 0;
         IRValue[1] = 0;
         SlavePrepareWakeup = true;
-        Serial.println("Slave Prepare Wakeup");
+        //Serial.println("Slave Prepare Wakeup");
         delay(1000);
         return;
     }
@@ -106,7 +106,7 @@ void checkStates() {
     lastTx = long(helpTime);
     if (!SlavePrepareWakeup && !MasterSleep) {
         if (lastTx  >= NO_TX_OCCURED) {
-            Serial.println("Force Wakeup");
+            //Serial.println("Force Wakeup");
             wakeupMaster();
             return;
         }
