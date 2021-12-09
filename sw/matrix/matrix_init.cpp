@@ -16,7 +16,7 @@ unsigned long IRTime = 0;
 bool goToSleep = false;
 unsigned long wakeupTime = 0;
 
-int animationState = 0;
+byte animationState = 0;
 int brightnessOffset = 0;
 long waitOffset = 0;
 

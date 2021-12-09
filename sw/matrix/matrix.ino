@@ -21,6 +21,8 @@ void setup() {
     init_comms();
 
     init_matrix();
+
+    turn_off();
 }
 
 //+++++++++++++++++++++ LOOP +++++++++++++++++++++++++++++
@@ -35,12 +37,12 @@ void loop() {
     if (buttonTime > IRTime) {  // Knopdruck kam zuletzt
         animation_change_button();
     }
-
+/*
     if (buttonTime == IRTime) {
         turn_off();
         goToSleep = true;
     }
-
+*/
     if (goToSleep) {
         turn_off();
         send_to_slave();

@@ -16,7 +16,7 @@ extern unsigned long IRTime;
 extern bool goToSleep;
 extern unsigned long wakeupTime;
 
-extern int animationState;
+extern byte animationState;
 extern int brightnessOffset;
 extern long waitOffset;
 
