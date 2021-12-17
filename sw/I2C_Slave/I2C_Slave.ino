@@ -86,7 +86,7 @@ void checkStates() {
     long lastTx;
 
     if (SlavePrepareWakeup && MasterSleep) {
-        if (IRValue[0] == 0x45) {
+        if (IRValue[0] == 0x1C) {
             //Serial.println("Wakeup Master");
             wakeupMaster();
         }

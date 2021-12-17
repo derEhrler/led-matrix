@@ -31,7 +31,7 @@ void enter_sleep() {
 
 void animation_change_ir() {
 
-    if (IRValue[0] == 0x45) {    // I/O
+    if (IRValue[0] == 0x1C) {    // I/O
         turn_off();
         goToSleep = true;
     }
@@ -46,31 +46,31 @@ void animation_change_ir() {
     if (IRValue[0] == 0x0D) {}   // ST/REPT
     if (IRValue[0] == 0x47) {}   // FUNC/STOP
     if (IRValue[0] == 0x16) {}   // 0
-    if (IRValue[0] == 0x0C) {    // 1
+    if (IRValue[0] == 0x45) {    // 1
         balken_lila_blau(0x1400F5, 0xDC003C, 100);
     }
-    if (IRValue[0] == 0x18) {    // 2
+    if (IRValue[0] == 0x46) {    // 2
         pride_strip_version();
     }
-    if (IRValue[0] == 0x5E) {    // 3
+    if (IRValue[0] == 0x47) {    // 3
         pride_matrix_version();
     }
-    if (IRValue[0] == 0x08) {    // 4
+    if (IRValue[0] == 0x44) {    // 4
         do_twinkle(45);
     }
-    if (IRValue[0] == 0x1C) {    // 5
+    if (IRValue[0] == 0x40) {    // 5
         do_snake(65);
     }
-    if (IRValue[0] == 0x5A) {    // 6
+    if (IRValue[0] == 0x43) {    // 6
         do_life(75);
     }
-    if (IRValue[0] == 0x42) {    // 7
+    if (IRValue[0] == 0x7) {    // 7
         do_plasma();
     }
-    if (IRValue[0] == 0x52) {    // 8
+    if (IRValue[0] == 0x15) {    // 8
         do_better_twinkle(20);
     }
-    if (IRValue[0] == 0x4A) {    // 9
+    if (IRValue[0] == 0x9) {    // 9
         do_lsd(20);
     }
 }
@@ -95,28 +95,28 @@ bool wait_and_check(unsigned long wait) {
         sleepTimeout = long(helpTime);
         if (request_from_slave()) {
             if (IRbuffer[0] == 0x0) {}           // vertippt
-            else if (IRbuffer[0] == 0x46) {      // VOL+
+            else if (IRbuffer[0] == 0x18) {      // VOL+
                 brightnessOffset += 5 * IRbuffer[1];
             }
-            else if (IRbuffer[0] == 0x15) {      // VOL-
+            else if (IRbuffer[0] == 0x52) {      // VOL-
                 brightnessOffset -= 5 * IRbuffer[1];
             }
-            else if (IRbuffer[0] == 0x43) {      // FORWARD
+            else if (IRbuffer[0] == 0x5A) {      // FORWARD
                 waitOffset -= 2 * IRbuffer[1];
             }
-            else if (IRbuffer[0] == 0x44) {      // BACKWARD
+            else if (IRbuffer[0] == 0x8) {      // BACKWARD
                 waitOffset += 2 * IRbuffer[1];
             }
-            else if (IRbuffer[0] == 0x09) {      // UP
+            else if (IRbuffer[0] == 0xD) {      // UP
                 animationState ++;
                 IRbuffer[0] = 0x0;
             }
-            else if (IRbuffer[0] == 0x07) {      // DOWN
+            else if (IRbuffer[0] == 0x16) {      // DOWN
                 animationState --;
                 IRbuffer[0] = 0x0;
             }
             else {
-                if (IRbuffer[0] == 0x45 && sleepTimeout <= SLEEP_COOLDOWN) {
+                if (IRbuffer[0] == 0x1C && sleepTimeout <= SLEEP_COOLDOWN) {
                     return false;    
                 }
                 IRValue[1] = IRValue[0];

@@ -2,7 +2,7 @@
 // Pins
 #define WAKEUP_PIN      2
 #define BUTTON_PIN      3
-#define MATRIX_PIN      6
+#define MATRIX_PIN      10
 #define BRIGHTNESS_PIN  A2
 
 
@@ -33,7 +33,7 @@
 
 //++++++++++++++++++++ SLAVE +++++++++++++++++++++++
 // Pins
-#define IR_PIN          2
+#define IR_PIN          12
 #define SLAVE_WAKEUP    6
 
 // Timers
