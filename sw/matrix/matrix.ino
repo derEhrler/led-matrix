@@ -1,7 +1,6 @@
 #include <FastLED.h>
 #include <Wire.h>
 
-#include "board_dev.h"
 #include "matrix_init.h"
 #include "matrix_control.h"
 #include "matrix_animation.h"
