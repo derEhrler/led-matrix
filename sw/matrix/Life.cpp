@@ -7,7 +7,6 @@
 //
 
 #import "Effect.h"
-#include "matrix_init.h"
 #include "matrix_control.h"
 
 const int deltaLen = 36;

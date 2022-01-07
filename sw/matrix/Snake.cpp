@@ -3,7 +3,6 @@
  */
 
 #include "Effect.h"
-#include "matrix_init.h"
 #include "matrix_control.h"
 
 class Snake : public Effect {

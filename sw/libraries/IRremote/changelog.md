@@ -1,5 +1,41 @@
 # Changelog
 The latest version may not be released!
+See also the commit log at github: https://github.com/Arduino-IRremote/Arduino-IRremote/commits/master
+
+## 3.5.2
+- Improved support for Teensy boards by Paul Stoffregen.
+
+## 3.5.1
+- Renamed INFO_PRINT to IR_INFO_PRINT as well as for DEBUG and TRACE.
+- Fixed error with DEBUG in TinyIRReceiver.hpp.
+- Support for ATmega88 see issue #923. Thanks to Dolmant.
+- NO_LED_FEEDBACK_CODE replaces and extends DISABLE_LED_FEEDBACK_FOR_RECEIVE.
+- Removed NO_LEGACY_COMPATIBILITY macro, it was useless now.
+- Fix ESP32 send bug see issue #927.
+
+## 3.5.0
+- Improved ir_DistanceProtocol.
+- Tone for ESP32.
+- last phase renamed *.cpp.h to .hpp.
+- No deprecation print for ATtinies.
+- Renamed ac_LG.cpp to ac_LG.hpp.
+- Maintained MagiQuest by E. Stuart Hicks.
+- Improved print Pronto by Asuki Kono.
+- Added printActiveIRProtocols() function.
+- Used IR_SEND_PIN to reduce code size and improved send timing for AVR.
+
+## 3.4.0
+- Added LG2 protocol.
+- Added ATtiny167 (Digispark Pro) support.
+- Renamed *.cpp.h to .hpp.
+- organized carrier frequencies.
+- Compiler switch USE_OPEN_DRAIN_OUTPUT_FOR_SEND_PIN added.
+- Moved blink13() back to IRrecv class.
+- Added Kaseikyo convenience functions like sendKaseikyo_Denon().
+- Improved / adjusted LG protocol and added class Aircondition_LG based on real hardware supplied by makerspace 201 (https://wiki.hackerspaces.org/ZwoNullEins) from Cologne.
+- Improved universal decoder for pulse width or pulse distance protocols to support more than 32 bits.
+- Added mbed support.
+
 ## 3.3.0
 - Fix errors if LED_BUILTIN is not defined.
 - Fixed error for AVR timer1. Thanks to alexbarcelo.

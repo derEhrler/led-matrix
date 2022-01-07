@@ -19,6 +19,8 @@
 // oscilloscope:
 //   DISH NETWORK (echostar 301):
 //   http://lirc.sourceforge.net/remotes/echostar/301_501_3100_5100_58xx_59xx
+#ifndef IR_DISH_HPP
+#define IR_DISH_HPP
 
 #define DISH_BITS             16
 #define DISH_HEADER_MARK     400
@@ -40,3 +42,5 @@ void IRsend::sendDISH(unsigned long data, int nbits) {
     mark(DISH_HEADER_MARK); //added 26th March 2016, by AnalysIR ( https://www.AnalysIR.com )
 }
 
+#endif
+#pragma once

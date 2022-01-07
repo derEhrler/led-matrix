@@ -29,10 +29,13 @@
  *
  ************************************************************************************
  */
+#ifndef IR_DENON_HPP
+#define IR_DENON_HPP
+
 #include <Arduino.h>
 
 //#define DEBUG // Activate this for lots of lovely debug output from this decoder.
-#include "IRremoteInt.h" // evaluates the DEBUG for DEBUG_PRINT
+#include "IRremoteInt.h" // evaluates the DEBUG for IR_DEBUG_PRINT
 
 /** \addtogroup Decoder Decoders and encoders for different protocols
  * @{
@@ -93,7 +96,7 @@ void IRsend::sendDenonRaw(uint16_t aRawData, uint_fast8_t aNumberOfRepeats) {
 //+=============================================================================
 void IRsend::sendDenon(uint8_t aAddress, uint8_t aCommand, uint_fast8_t aNumberOfRepeats, bool aSendSharp) {
     // Set IR carrier frequency
-    enableIROut(38);
+    enableIROut(DENON_KHZ); // 38 kHz
 
     // Shift command and add frame marker
     uint16_t tCommand = aCommand << DENON_FRAME_BITS; // the lowest bits are 00 for Denon and 10 for Sharp
@@ -111,7 +114,7 @@ void IRsend::sendDenon(uint8_t aAddress, uint8_t aCommand, uint_fast8_t aNumberO
         SEND_STOP_BIT);
 
         // Inverted autorepeat frame
-        delay(DENON_AUTO_REPEAT_SPACE / 1000);
+        delay(DENON_AUTO_REPEAT_SPACE / MICROS_IN_ONE_MILLI);
         sendPulseDistanceWidthData(DENON_BIT_MARK, DENON_ONE_SPACE, DENON_BIT_MARK, DENON_ZERO_SPACE, tInvertedData, DENON_BITS,
         PROTOCOL_IS_MSB_FIRST, SEND_STOP_BIT);
 
@@ -119,7 +122,7 @@ void IRsend::sendDenon(uint8_t aAddress, uint8_t aCommand, uint_fast8_t aNumberO
         // skip last delay!
         if (tNumberOfCommands > 0) {
             // send repeated command with a fixed space gap
-            delay( DENON_AUTO_REPEAT_SPACE / 1000);
+            delay( DENON_AUTO_REPEAT_SPACE / MICROS_IN_ONE_MILLI);
         }
     }
 }
@@ -135,24 +138,24 @@ bool IRrecv::decodeDenon() {
     // we have no start bit, so check for the exact amount of data bits
     // Check we have the right amount of data (32). The + 2 is for initial gap + stop bit mark
     if (decodedIRData.rawDataPtr->rawlen != (2 * DENON_BITS) + 2) {
-        DEBUG_PRINT(F("Denon: "));
-        DEBUG_PRINT("Data length=");
-        DEBUG_PRINT(decodedIRData.rawDataPtr->rawlen);
-        DEBUG_PRINTLN(" is not 32");
+        IR_DEBUG_PRINT(F("Denon: "));
+        IR_DEBUG_PRINT("Data length=");
+        IR_DEBUG_PRINT(decodedIRData.rawDataPtr->rawlen);
+        IR_DEBUG_PRINTLN(" is not 32");
         return false;
     }
 
     // Read the bits in
     if (!decodePulseDistanceData(DENON_BITS, 1, DENON_BIT_MARK, DENON_ONE_SPACE, DENON_ZERO_SPACE, PROTOCOL_IS_MSB_FIRST)) {
-        DEBUG_PRINT("Denon: ");
-        DEBUG_PRINTLN("Decode failed");
+        IR_DEBUG_PRINT("Denon: ");
+        IR_DEBUG_PRINTLN("Decode failed");
         return false;
     }
 
     // Check for stop mark
     if (!matchMark(decodedIRData.rawDataPtr->rawbuf[(2 * DENON_BITS) + 1], DENON_HEADER_MARK)) {
-        DEBUG_PRINT("Denon: ");
-        DEBUG_PRINTLN(F("Stop bit mark length is wrong"));
+        IR_DEBUG_PRINT("Denon: ");
+        IR_DEBUG_PRINTLN(F("Stop bit mark length is wrong"));
         return false;
     }
 
@@ -194,7 +197,6 @@ bool IRrecv::decodeDenon() {
     return true;
 }
 
-#if !defined(NO_LEGACY_COMPATIBILITY)
 bool IRrecv::decodeDenonOld(decode_results *aResults) {
 
     // Check we have the right amount of data
@@ -223,13 +225,14 @@ bool IRrecv::decodeDenonOld(decode_results *aResults) {
     decodedIRData.protocol = DENON;
     return true;
 }
-#endif
 
 void IRsend::sendDenon(unsigned long data, int nbits) {
     // Set IR carrier frequency
-    enableIROut(38);
+    enableIROut(DENON_KHZ);
+#if !(defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__) || defined(__AVR_ATtiny87__) || defined(__AVR_ATtiny167__))
     Serial.println(
             "The function sendDenon(data, nbits) is deprecated and may not work as expected! Use sendDenonRaw(data, NumberOfRepeats) or better sendDenon(Address, Command, NumberOfRepeats).");
+#endif
 
     // Header
     mark(DENON_HEADER_MARK);
@@ -246,3 +249,5 @@ void IRsend::sendSharp(unsigned int aAddress, unsigned int aCommand) {
 }
 
 /** @}*/
+#endif
+#pragma once

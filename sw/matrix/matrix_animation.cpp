@@ -1,13 +1,12 @@
 #include "matrix_init.h"
 #include "matrix_control.h"
-#include "matrix_animation.h"
 
 #include "Twinkle.cpp"
 #include "Snake.cpp"
 #include "Life.cpp"
 #include "Plasma.cpp"
 
-#include <FastLED.h>
+#include FROM_ROOT(libraries\FastLED\src\FastLED.h)     // FastLED
 
 //--------------------------------------------------------------------- turn_off
 void turn_off() {

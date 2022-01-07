@@ -1,8 +1,11 @@
+#pragma once
+
 #include "Arduino.h"
+#include "root.h"
 
-#include <FastLED.h>
 
-#include "C:\Users\Georg\Documents\led-matrix\sw\common\board_dev.h"
+#include FROM_ROOT(libraries\FastLED\src\FastLED.h)     // FastLED
+#include FROM_ROOT(common\board_dev.h)                  // board_dev
 
 
 extern volatile bool buttonSignal;

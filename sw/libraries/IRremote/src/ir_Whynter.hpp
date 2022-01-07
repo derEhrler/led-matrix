@@ -1,7 +1,10 @@
+#ifndef IR_WHYNTER_HPP
+#define IR_WHYNTER_HPP
+
 #include <Arduino.h>
 
 //#define DEBUG // Activate this for lots of lovely debug output from this decoder.
-#include "IRremoteInt.h" // evaluates the DEBUG for DEBUG_PRINT
+#include "IRremoteInt.h" // evaluates the DEBUG for IR_DEBUG_PRINT
 
 /** \addtogroup Decoder Decoders and encoders for different protocols
  * @{
@@ -52,8 +55,8 @@ bool IRrecv::decodeWhynter() {
     // Sequence begins with a bit mark and a zero space
     if (!matchMark(decodedIRData.rawDataPtr->rawbuf[1], WHYNTER_BIT_MARK)
             || !matchSpace(decodedIRData.rawDataPtr->rawbuf[2], WHYNTER_HEADER_SPACE)) {
-        DEBUG_PRINT(F("Whynter: "));
-        DEBUG_PRINTLN(F("Header mark or space length is wrong"));
+        IR_DEBUG_PRINT(F("Whynter: "));
+        IR_DEBUG_PRINTLN(F("Header mark or space length is wrong"));
         return false;
     }
 
@@ -63,7 +66,7 @@ bool IRrecv::decodeWhynter() {
 
     // trailing mark / stop bit
     if (!matchMark(decodedIRData.rawDataPtr->rawbuf[3 + (2 * WHYNTER_BITS)], WHYNTER_BIT_MARK)) {
-        DEBUG_PRINTLN(F("Stop bit mark length is wrong"));
+        IR_DEBUG_PRINTLN(F("Stop bit mark length is wrong"));
         return false;
     }
 
@@ -75,3 +78,5 @@ bool IRrecv::decodeWhynter() {
 }
 
 /** @}*/
+#endif
+#pragma once

@@ -1,7 +1,8 @@
 #include <Wire.h>
 #include <avr/sleep.h>
 
-#include "C:\Users\Georg\Documents\led-matrix\sw\common\board_dev.h"
+#include "root.h"
+#include FROM_ROOT(common\board_dev.h)          // board_dev
 
 
 byte data[2];

@@ -1,5 +1,5 @@
 /*
- * ir_JVC.cpp
+ * ir_JVC.hpp
  *
  *  Contains functions for receiving and sending JVC IR Protocol in "raw" and standard format with 8 bit address and 8 bit command
  *
@@ -29,10 +29,13 @@
  *
  ************************************************************************************
  */
+#ifndef IR_JVC_HPP
+#define IR_JVC_HPP
+
 #include <Arduino.h>
 
 //#define DEBUG // Activate this for lots of lovely debug output from this decoder.
-#include "IRremoteInt.h" // evaluates the DEBUG for DEBUG_PRINT
+#include "IRremoteInt.h" // evaluates the DEBUG for IR_DEBUG_PRINT
 
 /** \addtogroup Decoder Decoders and encoders for different protocols
  * @{
@@ -53,7 +56,7 @@
 #define JVC_COMMAND_BITS      8 // Command
 
 #define JVC_BITS              (JVC_ADDRESS_BITS + JVC_COMMAND_BITS) // 16 - The number of bits in the protocol
-#define JVC_UNIT              526
+#define JVC_UNIT              526 // 20 periods of 38 kHz (526.315789)
 
 #define JVC_HEADER_MARK       (16 * JVC_UNIT) // 8400
 #define JVC_HEADER_SPACE      (8 * JVC_UNIT)  // 4200
@@ -71,7 +74,7 @@
 
 void IRsend::sendJVC(uint8_t aAddress, uint8_t aCommand, uint_fast8_t aNumberOfRepeats) {
     // Set IR carrier frequency
-    enableIROut(38);
+    enableIROut(JVC_KHZ); // 38 kHz
 
     // Header
     mark(JVC_HEADER_MARK);
@@ -88,7 +91,7 @@ void IRsend::sendJVC(uint8_t aAddress, uint8_t aCommand, uint_fast8_t aNumberOfR
         // skip last delay!
         if (tNumberOfCommands > 0) {
             // send repeated command in a fixed raster
-            delay(JVC_REPEAT_SPACE / 1000);
+            delay(JVC_REPEAT_SPACE / MICROS_IN_ONE_MILLI);
         }
     }
 }
@@ -102,10 +105,10 @@ bool IRrecv::decodeJVC() {
 
     // Check we have the right amount of data (36 or 34). The +4 is for initial gap, start bit mark and space + stop bit mark. +2 is for repeats
     if (decodedIRData.rawDataPtr->rawlen != ((2 * JVC_BITS) + 4) && decodedIRData.rawDataPtr->rawlen != ((2 * JVC_BITS) + 2)) {
-        DEBUG_PRINT(F("JVC: "));
-        DEBUG_PRINT("Data length=");
-        DEBUG_PRINT(decodedIRData.rawDataPtr->rawlen);
-        DEBUG_PRINTLN(" is not 34 or 36");
+        IR_DEBUG_PRINT(F("JVC: "));
+        IR_DEBUG_PRINT("Data length=");
+        IR_DEBUG_PRINT(decodedIRData.rawDataPtr->rawlen);
+        IR_DEBUG_PRINTLN(" is not 34 or 36");
         return false;
     }
 
@@ -114,7 +117,7 @@ bool IRrecv::decodeJVC() {
          * Check for repeat
          * Check leading space and first and last mark length
          */
-        if (decodedIRData.rawDataPtr->rawbuf[0] < ((JVC_REPEAT_SPACE + (JVC_REPEAT_SPACE / 2) / MICROS_PER_TICK))
+        if (decodedIRData.rawDataPtr->rawbuf[0] < ((JVC_REPEAT_SPACE + (JVC_REPEAT_SPACE / 4) / MICROS_PER_TICK))
                 && matchMark(decodedIRData.rawDataPtr->rawbuf[1], JVC_BIT_MARK)
                 && matchMark(decodedIRData.rawDataPtr->rawbuf[decodedIRData.rawDataPtr->rawlen - 1], JVC_BIT_MARK)) {
             /*
@@ -130,14 +133,14 @@ bool IRrecv::decodeJVC() {
         // Check header "mark" and "space"
         if (!matchMark(decodedIRData.rawDataPtr->rawbuf[1], JVC_HEADER_MARK)
                 || !matchSpace(decodedIRData.rawDataPtr->rawbuf[2], JVC_HEADER_SPACE)) {
-            DEBUG_PRINT("JVC: ");
-            DEBUG_PRINTLN("Header mark or space length is wrong");
+            IR_DEBUG_PRINT("JVC: ");
+            IR_DEBUG_PRINTLN("Header mark or space length is wrong");
             return false;
         }
 
         if (!decodePulseDistanceData(JVC_BITS, 3, JVC_BIT_MARK, JVC_ONE_SPACE, JVC_ZERO_SPACE, PROTOCOL_IS_LSB_FIRST)) {
-            DEBUG_PRINT(F("JVC: "));
-            DEBUG_PRINTLN(F("Decode failed"));
+            IR_DEBUG_PRINT(F("JVC: "));
+            IR_DEBUG_PRINTLN(F("Decode failed"));
             return false;
         }
 
@@ -155,7 +158,6 @@ bool IRrecv::decodeJVC() {
     return true;
 }
 
-#if !defined(NO_LEGACY_COMPATIBILITY)
 bool IRrecv::decodeJVCMSB(decode_results *aResults) {
     unsigned int offset = 1; // Skip first space
 
@@ -177,9 +179,9 @@ bool IRrecv::decodeJVCMSB(decode_results *aResults) {
 
     // Check we have enough data - +3 for start bit mark and space + stop bit mark
     if (aResults->rawlen <= (2 * JVC_BITS) + 3) {
-        DEBUG_PRINT("Data length=");
-        DEBUG_PRINT(aResults->rawlen);
-        DEBUG_PRINTLN(" is too small. >= 36 is required.");
+        IR_DEBUG_PRINT("Data length=");
+        IR_DEBUG_PRINT(aResults->rawlen);
+        IR_DEBUG_PRINTLN(" is too small. >= 36 is required.");
 
         return false;
     }
@@ -196,7 +198,7 @@ bool IRrecv::decodeJVCMSB(decode_results *aResults) {
 
     // Stop bit
     if (!matchMark(aResults->rawbuf[offset + (2 * JVC_BITS)], JVC_BIT_MARK)) {
-        DEBUG_PRINTLN(F("Stop bit mark length is wrong"));
+        IR_DEBUG_PRINTLN(F("Stop bit mark length is wrong"));
         return false;
     }
 
@@ -208,8 +210,6 @@ bool IRrecv::decodeJVCMSB(decode_results *aResults) {
 
     return true;
 }
-
-#endif
 
 /**
  * With Send sendJVCMSB() you can send your old 32 bit codes.
@@ -223,7 +223,7 @@ bool IRrecv::decodeJVCMSB(decode_results *aResults) {
  */
 void IRsend::sendJVCMSB(unsigned long data, int nbits, bool repeat) {
     // Set IR carrier frequency
-    enableIROut(38);
+    enableIROut(JVC_KHZ);
 
     // Only send the Header if this is NOT a repeat command
     if (!repeat) {
@@ -237,3 +237,5 @@ void IRsend::sendJVCMSB(unsigned long data, int nbits, bool repeat) {
 }
 
 /** @}*/
+#endif
+#pragma once

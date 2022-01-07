@@ -1,3 +1,5 @@
+#pragma once
+
 /*#include "Arduino.h"
 
 int letter_A [4][3] = {

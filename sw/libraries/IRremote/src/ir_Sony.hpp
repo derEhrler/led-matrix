@@ -1,5 +1,5 @@
 /*
- * ir_Sony.cpp
+ * ir_Sony.hpp
  *
  *  Contains functions for receiving and sending SIRCS/Sony IR Protocol in "raw" and standard format with 5 bit address 7 bit command
  *
@@ -27,10 +27,13 @@
  *
  ************************************************************************************
  */
+#ifndef IR_SONY_HPP
+#define IR_SONY_HPP
+
 #include <Arduino.h>
 
 //#define DEBUG // Activate this for lots of lovely debug output from this decoder.
-#include "IRremoteInt.h" // evaluates the DEBUG for DEBUG_PRINT
+#include "IRremoteInt.h" // evaluates the DEBUG for IR_DEBUG_PRINT
 
 /** \addtogroup Decoder Decoders and encoders for different protocols
  * @{
@@ -52,7 +55,7 @@
 #define SONY_BITS_MIN           (SONY_COMMAND_BITS + SONY_ADDRESS_BITS)        // 12 bits
 #define SONY_BITS_15            (SONY_COMMAND_BITS + SONY_ADDRESS_BITS + 3)    // 15 bits
 #define SONY_BITS_MAX           (SONY_COMMAND_BITS + SONY_ADDRESS_BITS + SONY_EXTRA_BITS)    // 20 bits == SIRCS_20_PROTOCOL
-#define SONY_UNIT               600
+#define SONY_UNIT               600 // 24 periods of 40kHz
 
 #define SONY_HEADER_MARK        (4 * SONY_UNIT) //2400
 #define SONY_ONE_MARK           (2 * SONY_UNIT) // 1200
@@ -70,7 +73,7 @@
  */
 void IRsend::sendSony(uint16_t aAddress, uint8_t aCommand, uint_fast8_t aNumberOfRepeats, uint8_t numberOfBits) {
     // Set IR carrier frequency
-    enableIROut(40);
+    enableIROut(SONY_KHZ); // 40 kHz
 
     uint_fast8_t tNumberOfCommands = aNumberOfRepeats + 1;
     while (tNumberOfCommands > 0) {
@@ -90,7 +93,7 @@ void IRsend::sendSony(uint16_t aAddress, uint8_t aCommand, uint_fast8_t aNumberO
         // skip last delay!
         if (tNumberOfCommands > 0) {
             // send repeated command in a 45 ms raster
-            delay(SONY_REPEAT_SPACE / 1000);
+            delay(SONY_REPEAT_SPACE / MICROS_IN_ONE_MILLI);
         }
     }
 }
@@ -104,26 +107,26 @@ bool IRrecv::decodeSony() {
         return false;
     }
 
-    // Check we have enough data. +2 for initial gap and start bit mark and space minus the last/MSB space. NO stop bit!
+    // Check we have enough data. +2 for initial gap and start bit mark and space minus the last/MSB space. NO stop bit! 26, 32, 42
     if (decodedIRData.rawDataPtr->rawlen != (2 * SONY_BITS_MIN) + 2 && decodedIRData.rawDataPtr->rawlen != (2 * SONY_BITS_MAX) + 2
             && decodedIRData.rawDataPtr->rawlen != (2 * SONY_BITS_15) + 2) {
-        // TRACE_PRINT since I saw this too often
-        DEBUG_PRINT("Sony: ");
-        DEBUG_PRINT("Data length=");
-        DEBUG_PRINT(decodedIRData.rawDataPtr->rawlen);
-        DEBUG_PRINTLN(" is not 12, 15 or 20");
+        // ??? IR_TRACE_PRINT since I saw this too often
+        IR_DEBUG_PRINT("Sony: ");
+        IR_DEBUG_PRINT("Data length=");
+        IR_DEBUG_PRINT(decodedIRData.rawDataPtr->rawlen);
+        IR_DEBUG_PRINTLN(" is not 12, 15 or 20");
         return false;
     }
     // Check header "space"
     if (!matchSpace(decodedIRData.rawDataPtr->rawbuf[2], SONY_SPACE)) {
-        DEBUG_PRINT("Sony: ");
-        DEBUG_PRINTLN("Header space length is wrong");
+        IR_DEBUG_PRINT("Sony: ");
+        IR_DEBUG_PRINTLN("Header space length is wrong");
         return false;
     }
 
     if (!decodePulseWidthData((decodedIRData.rawDataPtr->rawlen - 1) / 2, 3, SONY_ONE_MARK, SONY_ZERO_MARK, SONY_SPACE, PROTOCOL_IS_LSB_FIRST)) {
-        DEBUG_PRINT("Sony: ");
-        DEBUG_PRINTLN("Decode failed");
+        IR_DEBUG_PRINT("Sony: ");
+        IR_DEBUG_PRINTLN("Decode failed");
         return false;
     }
 
@@ -146,7 +149,6 @@ bool IRrecv::decodeSony() {
     return true;
 }
 
-#if !defined(NO_LEGACY_COMPATIBILITY)
 #define SONY_DOUBLE_SPACE_USECS    500 // usually see 713 - not using ticks as get number wrap around
 bool IRrecv::decodeSonyMSB(decode_results *aResults) {
     long data = 0;
@@ -160,7 +162,7 @@ bool IRrecv::decodeSonyMSB(decode_results *aResults) {
     // Some Sony's deliver repeats fast after first
     // unfortunately can't spot difference from of repeat from two fast clicks
     if (aResults->rawbuf[0] < (SONY_DOUBLE_SPACE_USECS / MICROS_PER_TICK)) {
-        DEBUG_PRINTLN("IR Gap found");
+        IR_DEBUG_PRINTLN("IR Gap found");
         aResults->bits = 0;
         aResults->value = 0xFFFFFFFF;
         decodedIRData.flags = IRDATA_FLAGS_IS_REPEAT;
@@ -205,14 +207,12 @@ bool IRrecv::decodeSonyMSB(decode_results *aResults) {
     return true;
 }
 
-#endif
-
 /**
  * Old version with MSB first data
  */
 void IRsend::sendSony(unsigned long data, int nbits) {
     // Set IR carrier frequency
-    enableIROut(40);
+    enableIROut(SONY_KHZ);
 
     // Header
     mark(SONY_HEADER_MARK);
@@ -223,3 +223,5 @@ void IRsend::sendSony(unsigned long data, int nbits) {
 }
 
 /** @}*/
+#endif
+#pragma once

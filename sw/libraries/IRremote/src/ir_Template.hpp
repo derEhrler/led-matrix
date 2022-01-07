@@ -57,11 +57,11 @@
 
  4. Save your changes and close the files
 
- 5. Now open IRReceive.cpp.h and make the following change:
+ 5. Now open IRReceive.hpp and make the following change:
 
  A. In the function IRrecv::decode(), add:
  #ifdef DECODE_SHUZU
- DEBUG_PRINTLN("Attempting Shuzu decode");
+ IR_DEBUG_PRINTLN("Attempting Shuzu decode");
  if (decodeShuzu())  return true ;
  #endif
 
@@ -124,10 +124,13 @@
  *
  ************************************************************************************
  */
+#ifndef IR_SHUZU_HPP
+#define IR_SHUZU_HPP
+
 #include <Arduino.h>
 
 //#define DEBUG // Activate this for lots of lovely debug output from this decoder.
-#include "IRremoteInt.h" // evaluates the DEBUG for DEBUG_PRINT
+#include "IRremoteInt.h" // evaluates the DEBUG for IR_DEBUG_PRINT
 
 //#define SEND_SHUZU  1 // for testing
 //#define DECODE_SHUZU  1 // for testing
@@ -164,7 +167,7 @@
 //
 void IRsend::sendShuzu(uint16_t aAddress, uint8_t aCommand, uint_fast8_t aNumberOfRepeats) {
     // Set IR carrier frequency
-    enableIROut(37); // 36.7kHz is the correct frequency
+    enableIROut(38);
 
     uint_fast8_t tNumberOfCommands = aNumberOfRepeats + 1;
     while (tNumberOfCommands > 0) {
@@ -185,7 +188,7 @@ void IRsend::sendShuzu(uint16_t aAddress, uint8_t aCommand, uint_fast8_t aNumber
         // skip last delay!
         if (tNumberOfCommands > 0) {
             // send repeated command in a fixed raster
-            delay(SHUZU_REPEAT_SPACE / 1000);
+            delay(SHUZU_REPEAT_SPACE / MICROS_IN_ONE_MILLI);
         }
     }
 }
@@ -208,22 +211,22 @@ bool IRrecv::decodeShuzu() {
 
     // Check header "space"
     if (!matchMark(decodedIRData.rawDataPtr->rawbuf[1], SHUZU_HEADER_MARK) || !matchSpace(decodedIRData.rawDataPtr->rawbuf[2], SHUZU_HEADER_SPACE)) {
-        DEBUG_PRINT("Shuzu: ");
-        DEBUG_PRINTLN("Header mark or space length is wrong");
+        IR_DEBUG_PRINT("Shuzu: ");
+        IR_DEBUG_PRINTLN("Header mark or space length is wrong");
         return false;
     }
 
     // false -> LSB first
     if (!decodePulseDistanceData(SHUZU_BITS, 3, SHUZU_BIT_MARK, SHUZU_ONE_SPACE, SHUZU_ZERO_SPACE, PROTOCOL_IS_LSB_FIRST)) {
-        DEBUG_PRINT(F("Shuzu: "));
-        DEBUG_PRINTLN(F("Decode failed"));
+        IR_DEBUG_PRINT(F("Shuzu: "));
+        IR_DEBUG_PRINTLN(F("Decode failed"));
         return false;
     }
 
     // Stop bit
     if (!matchMark(decodedIRData.rawDataPtr->rawbuf[3 + (2 * SHUZU_BITS)], SHUZU_BIT_MARK)) {
-        DEBUG_PRINT(F("Shuzu: "));
-        DEBUG_PRINTLN(F("Stop bit mark length is wrong"));
+        IR_DEBUG_PRINT(F("Shuzu: "));
+        IR_DEBUG_PRINTLN(F("Stop bit mark length is wrong"));
         return false;
     }
 
@@ -235,7 +238,7 @@ bool IRrecv::decodeShuzu() {
     /*
      *  Check for repeat
      */
-    if (decodedIRData.rawDataPtr->rawbuf[0] < ((SHUZU_REPEAT_SPACE + (SHUZU_REPEAT_SPACE / 2)) / MICROS_PER_TICK)) {
+    if (decodedIRData.rawDataPtr->rawbuf[0] < ((SHUZU_REPEAT_SPACE + (SHUZU_REPEAT_SPACE / 4)) / MICROS_PER_TICK)) {
         decodedIRData.flags = IRDATA_FLAGS_IS_REPEAT | IRDATA_FLAGS_IS_LSB_FIRST;
     }
     decodedIRData.command = tCommand;
@@ -245,3 +248,5 @@ bool IRrecv::decodeShuzu() {
 
     return true;
 }
+#endif // #ifndef IR_SHUZU_HPP
+#pragma once
