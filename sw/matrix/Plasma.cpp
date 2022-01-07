@@ -7,6 +7,7 @@
 //
 
 #import "Effect.h"
+#include "matrix_control.h"
 
 class Plasma : public Effect {
     
@@ -15,16 +16,16 @@ public:
     Plasma(CRGB *leds, int width, int height) : Effect(leds, width, height) {
     }
     
-    void start(bool *_buttonSignal, bool *_IRSignal, long *_IRValue, volatile long *_IRValueNew, long *_waitOffset, int *_brightnessOffset, int *_animationState) {
+    void start() {
         for (uint16_t time = 0, cycles = 0; cycles < 2048; time += 128, cycles++) {
-            if(calcFrame(time, _buttonSignal, _IRSignal, _IRValue, _IRValueNew, _waitOffset, _brightnessOffset, _animationState))
+            if(calcFrame(time))
                 return;
         }
     }
     //sin(distance(x, y, (128 * sin(-t) + 128), (128 * cos(-t) + 128)) / 40.74)s
     // v = sin(10 * (x * sin(time / 2) + y * cos(time / 3)) + time)
     
-    bool calcFrame(int time, bool *_buttonSignal, bool *_IRSignal, long *_IRValue, volatile long *_IRValueNew, long *_waitOffset, int *_brightnessOffset, int *_animationState) {
+    bool calcFrame(int time) {
 
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
@@ -37,7 +38,7 @@ public:
                 pixel(x, y) = CHSV((v >> 8) + 127, 255, 255);
             }
         }
-        if(_waitAndCheck(_buttonSignal, _IRSignal, _IRValue, _IRValueNew, _waitOffset, _brightnessOffset, _animationState, 0))
+        if(wait_and_check(0))
             return 1;
         return 0;
     }

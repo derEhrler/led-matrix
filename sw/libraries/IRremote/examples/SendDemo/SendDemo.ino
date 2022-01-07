@@ -40,8 +40,9 @@
 //#define EXCLUDE_EXOTIC_PROTOCOLS // saves around 240 bytes program space if IrSender.write is used
 //#define SEND_PWM_BY_TIMER
 //#define USE_NO_SEND_PWM
+//#define NO_LED_FEEDBACK_CODE // saves 566 bytes program space
 
-#include <IRremote.h>
+#include <IRremote.hpp>
 
 #define DELAY_AFTER_SEND 2000
 #define DELAY_AFTER_LOOP 5000
@@ -54,7 +55,11 @@ void setup() {
     // Just to know which program is running on my Arduino
     Serial.println(F("START " __FILE__ " from " __DATE__ "\r\nUsing library version " VERSION_IRREMOTE));
 
+#if defined(IR_SEND_PIN) || defined(NO_LED_FEEDBACK_CODE)
+    IrSender.begin(); // Start with IR_SEND_PIN as send pin and if NO_LED_FEEDBACK_CODE is NOT defined, enable feedback LED at default feedback LED pin
+#else
     IrSender.begin(IR_SEND_PIN, ENABLE_LED_FEEDBACK); // Specify send pin and enable feedback LED at default feedback LED pin
+#endif
 
     Serial.print(F("Ready to send IR signals at pin "));
 #if defined(ARDUINO_ARCH_STM32) || defined(ESP8266)
@@ -67,8 +72,7 @@ void setup() {
     /*
      * Print internal signal generation info
      */
-    IrSender.enableIROut(38);
-
+    IrSender.enableIROut(38); // Call it with 38 kHz to initialize the values printed below
     Serial.print(F("Send signal mark duration is "));
     Serial.print(IrSender.periodOnTimeMicros);
     Serial.print(F(" us, pulse correction is "));
@@ -115,7 +119,7 @@ void loop() {
     delay(DELAY_AFTER_SEND);
 
     if (sRepeats == 0) {
-#if FLASHEND > 0x1FFF // For more than 8k flash. Code does not fit in program space of ATtiny85 etc.
+#if FLASHEND >= 0x3FFF  // For 16k flash or more, like ATtiny1604. Code does not fit in program space of ATtiny85 etc.
         /*
          * Send constant values only once in this demo
          */
@@ -128,15 +132,32 @@ void loop() {
                 "0019 0013 0019 003C 0017 0015 0017 003F 0017 003E 0017 003F 0017 0015 0017 003E " /* inverted command byte */
                 "0017 0806"), 0); //stop bit, no repeat possible, because of missing repeat pattern
         delay(DELAY_AFTER_SEND);
+
+        Serial.println(F("Send NEC 16 bit address=0xFB04 and command 0x08 with exact timing (16 bit array format)"));
+        Serial.flush();
+        const uint16_t irSignal[] = { 9000, 4500/*Start bit*/, 560, 560, 560, 560, 560, 1690, 560,
+                560/*0010 0x4 of 16 bit address LSB first*/, 560, 560, 560, 560, 560, 560, 560, 560/*0000*/, 560, 1690, 560, 1690,
+                560, 560, 560, 1690/*1101 0xB*/, 560, 1690, 560, 1690, 560, 1690, 560, 1690/*1111*/, 560, 560, 560, 560, 560, 560,
+                560, 1690/*0001 0x08 of command LSB first*/, 560, 560, 560, 560, 560, 560, 560, 560/*0000 0x00*/, 560, 1690, 560,
+                1690, 560, 1690, 560, 560/*1110 Inverted 8 of command*/, 560, 1690, 560, 1690, 560, 1690, 560,
+                1690/*1111 inverted 0 of command*/, 560 /*stop bit*/}; // Using exact NEC timing
+        IrSender.sendRaw(irSignal, sizeof(irSignal) / sizeof(irSignal[0]), NEC_KHZ); // Note the approach used to automatically calculate the size of the array.
+        delay(DELAY_AFTER_SEND);
 #endif
         /*
          * With sendNECRaw() you can send 32 bit combined codes
          */
-        Serial.println(
-                F(
-                        "Send NEC / ONKYO with 16 bit address 0x0102 and 16 bit command 0x0304 with NECRaw(0x03040102)"));
+        Serial.println(F("Send NEC / ONKYO with 16 bit address 0x0102 and 16 bit command 0x0304 with NECRaw(0x03040102)"));
         Serial.flush();
         IrSender.sendNECRaw(0x03040102, sRepeats);
+        delay(DELAY_AFTER_SEND);
+
+        Serial.println(F("Send NEC with 16 bit address 0x0102 and 16 bit command 0x0304 with sendPulseDistanceWidthData()"));
+        // Header
+        IrSender.mark(9000);
+        IrSender.space(4500);
+        // LSB first + stop bit
+        IrSender.sendPulseDistanceWidthData(560, 1680, 560, 560, 0x03040102, 32, PROTOCOL_IS_LSB_FIRST, SEND_STOP_BIT);
         delay(DELAY_AFTER_SEND);
 
         /*
@@ -169,6 +190,11 @@ void loop() {
     Serial.println(F("Send Kaseikyo with 0x4711 as Vendor ID"));
     Serial.flush();
     IrSender.sendKaseikyo(sAddress & 0xFFF, sCommand, sRepeats, 0x4711);
+    delay(DELAY_AFTER_SEND);
+
+    Serial.println(F("Send Kaseikyo_Denon variant"));
+    Serial.flush();
+    IrSender.sendKaseikyo_Denon(sAddress & 0xFFF, sCommand, sRepeats);
     delay(DELAY_AFTER_SEND);
 
     Serial.println(F("Send Denon"));
@@ -211,7 +237,7 @@ void loop() {
     IrSender.sendRC6(sAddress, sCommand, sRepeats, true);
     delay(DELAY_AFTER_SEND);
 
-#if FLASHEND > 0x1FFF // For more than 8k flash. Code does not fit in program space of ATtiny85 etc.
+#if FLASHEND >= 0x3FFF  // For 16k flash or more, like ATtiny1604. Code does not fit in program space of ATtiny85 etc.
     /*
      * Next example how to use the IrSender.write function
      */
@@ -255,14 +281,16 @@ void loop() {
     IrSender.sendLegoPowerFunctions(sAddress, sCommand, LEGO_MODE_COMBO, true);
     delay(DELAY_AFTER_SEND);
 
-#endif // FLASHEND > 0x1FFF
+#endif // FLASHEND
     /*
      * Force buffer overflow
      */
-    Serial.println(F("Force buffer overflow by sending 100 marks and spaces"));
-    for (unsigned int i = 0; i < RAW_BUFFER_LENGTH; ++i) {
-        IrSender.mark(400);
-        IrSender.space(400);
+    Serial.println(F("Force buffer overflow by sending 280 marks and spaces"));
+    for (unsigned int i = 0; i < 140; ++i) {
+        // 400 + 400 should be received as 8/8 and sometimes as 9/7 or 7/9 if compensation by MARK_EXCESS_MICROS is optimal.
+        // 210 + 540 = 750 should be received as 5/10 or 4/11 if compensation by MARK_EXCESS_MICROS is optimal.
+        IrSender.mark(210); // 8 pulses at 38 kHz
+        IrSender.space(540); // to fill up to 750 us
     }
     delay(DELAY_AFTER_SEND);
 
@@ -280,3 +308,4 @@ void loop() {
 
     delay(DELAY_AFTER_LOOP); // additional delay at the end of each loop
 }
+

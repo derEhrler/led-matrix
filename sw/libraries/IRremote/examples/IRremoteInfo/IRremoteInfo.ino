@@ -10,7 +10,7 @@
  * Original Author: AnalysIR - IR software & modules for Makers & Pros, visit http://www.AnalysIR.com
  */
 
-#include <IRremote.h>
+#include <IRremote.hpp>
 
 // Function declarations for non Arduino IDE's
 void dumpHeader();
@@ -100,12 +100,18 @@ void dumpTIMER() {
 
 void dumpTimerPin() {
     Serial.print(F("IR Send Pin: "));
+#if defined(IR_SEND_PIN)
+    Serial.println(IR_SEND_PIN);
+#else
     Serial.println(IrSender.sendPin);
+#endif
 }
 
 void dumpClock() {
+#if defined(F_CPU)
     Serial.print(F("MCU Clock: "));
     Serial.println(F_CPU);
+#endif
 }
 
 void dumpPlatform() {

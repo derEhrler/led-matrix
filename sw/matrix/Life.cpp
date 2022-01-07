@@ -7,6 +7,7 @@
 //
 
 #import "Effect.h"
+#include "matrix_control.h"
 
 const int deltaLen = 36;
 
@@ -30,7 +31,7 @@ public:
         }
     }
     
-    void start(bool *_buttonSignal, bool *_IRSignal, long *_IRValue, volatile long *_IRValueNew, long *_waitOffset, int *_brightnessOffset, int *_animationState, unsigned long wait) {
+    void start(unsigned long wait) {
         for (int iterations = 0; iterations < 20; iterations++) {
             bool changed = false;
             uint8_t hue = random(256);
@@ -59,10 +60,10 @@ public:
                 for (int i = 0; i < deltaLen; i++) {
                     delta[i] = 0;
                 }
-                if(_waitAndCheck(_buttonSignal, _IRSignal, _IRValue, _IRValueNew, _waitOffset, _brightnessOffset, _animationState, wait))
+                if(wait_and_check(wait))
                     return;
             }
-            if(fadeout(_buttonSignal, _IRSignal, _IRValue, _IRValueNew, _brightnessOffset, _animationState))
+            if(fadeout())
                 return;
         }
     }
@@ -115,13 +116,13 @@ public:
         return y * 2 + (x < 16 ? 0 : 1);
     }
     
-    bool fadeout(bool *_buttonSignal, bool *_IRSignal, long *_IRValue, volatile long *_IRValueNew, int *_brightnessOffset, int *_animationState) {
+    bool fadeout() {
         long noWaitOffset = 0;
         for (int brightness = 0; brightness < 256; brightness++) {
             for (int i = 0; i < width * height; i++) {
                 leds[i]--;
             }
-            if(_waitAndCheck(_buttonSignal, _IRSignal, _IRValue, _IRValueNew, &noWaitOffset, _brightnessOffset, _animationState, 0))
+            if(wait_and_check(0))
                 return true;
         }
         return false;
