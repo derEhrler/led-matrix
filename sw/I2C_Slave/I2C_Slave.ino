@@ -1,6 +1,8 @@
 #include <Wire.h>
 
 #include "root.h"
+
+#define SLAVE_BOARD
 #include FROM_ROOT(common\board_dev.h)                      // board_dev
 #include FROM_ROOT(libraries\IRremote\src\IRremote.h)       // IRremote
 // Version 3.3.0 hat funktioniert

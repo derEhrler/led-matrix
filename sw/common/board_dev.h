@@ -1,4 +1,7 @@
+#pragma once
 //++++++++++++++++++++ MASTER +++++++++++++++++++++++
+#ifdef MASTER_BOARD
+
 // Pins
 #define WAKEUP_PIN      2
 #define BUTTON_PIN      3
@@ -32,12 +35,17 @@
 // LSD
 #define MAX_DIMENSION ((kMatrixWidth>kMatrixHeight) ? kMatrixWidth : kMatrixHeight)
 
+#endif
 
 
 //++++++++++++++++++++ SLAVE +++++++++++++++++++++++
+#ifdef SLAVE_BOARD
+
 // Pins
 #define IR_PIN          2
 #define SLAVE_WAKEUP    6
 
 // Timers
 #define NO_TX_OCCURED   3000
+
+#endif

@@ -3,9 +3,9 @@
 #include "Arduino.h"
 #include "root.h"
 
-
-#include FROM_ROOT(libraries\FastLED\src\FastLED.h)     // FastLED
+#define MASTER_BOARD
 #include FROM_ROOT(common\board_dev.h)                  // board_dev
+#include FROM_ROOT(libraries\FastLED\src\FastLED.h)     // FastLED
 
 
 extern volatile bool buttonSignal;

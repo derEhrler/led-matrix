@@ -2,6 +2,8 @@
 #include <avr/sleep.h>
 
 #include "root.h"
+
+#define MASTER_BOARD
 #include FROM_ROOT(common\board_dev.h)          // board_dev
 
 
